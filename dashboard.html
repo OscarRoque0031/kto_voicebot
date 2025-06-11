@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="nl">
+<body>
+  <div class="container">
+    <div id="api-status" style="margin-bottom: 1em; font-weight: bold;">
+      API status: <span id="api-status-text" style="color: gray;">Controleren...</span>
+    </div>
+    <h1>Beoordelingen Voicebot</h1>
+    <a href="/dashboard-csv" target="_blank">Download als CSV</a>
+    <a href="/logout">Uitloggen</a>
+    <div id="filter-container"></div>
+    <canvas id="beoordelingenChart"></canvas>
+    <div id="tabel"></div>
+  <div id="addUserForm" style="display:none; margin-top: 2em;">
+  <h3>Nieuwe gebruiker toevoegen</h3>
+  <form method="POST" action="/dashboard/add-user">
+    <input type="text" name="username" placeholder="E-mailadres" required /><br>
+    <input type="password" name="password" placeholder="Wachtwoord" required /><br>
+    <input type="text" name="voicebot_naam" placeholder="Bot-naam" required /><br>
+    <button type="submit">Toevoegen</button>
+  </form>
+</div>
+  </div>
+</body>
+<head>
+  <meta charset="UTF-8">
+  <title>Klanttevredenheid Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f9f9f9; }
+    .container { background: #fff; padding: 2em; border-radius: 12px; max-width: 700px; margin: auto; }
+    #chart-container { width: 100%; height: 400px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: #f2f2f2; text-align: left; }
+    #api-status {
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 0.5em 0;
+      z-index: 1000;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+</div>
+
+<script>
+let isBeheerder = false;
+fetch('/voicebot-namen')
+  .then(r => {
+    if (r.status === 403) return null; // geen beheerder
+    isBeheerder = true;
+    return r.json();
+  })
+  .then(namen => {
+    if (!namen) return; // geen beheerder: geen dropdown
+    const filter = document.createElement('select');
+    filter.innerHTML = `<option value="">Alle voicebots</option>` +
+      namen.map(n => `<option value="${n}">${n}</option>`).join('');
+    filter.addEventListener('change', () => laadData(filter.value));
+    document.getElementById('filter-container').appendChild(filter);
+  })
+  .catch(()=>{});
+
+function laadData(voicebot) {
+  let url = '/dashboard-data';
+  if (voicebot) url += '?voicebot_naam=' + encodeURIComponent(voicebot);
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      // chart
+      const labels = ["slecht", "voldoende", "goed"];
+      const counts = [0, 0, 0];
+      data.forEach(item => {
+        if (item.beoordeling_tekst === "slecht") counts[0]++;
+        if (item.beoordeling_tekst === "voldoende") counts[1]++;
+        if (item.beoordeling_tekst === "goed") counts[2]++;
+      });
+
+      if (window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(document.getElementById('beoordelingenChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Aantal beoordelingen',
+            data: counts,
+            backgroundColor: [
+              '#ff3b30',   // slecht = rood
+              '#ff9500',   // voldoende = oranje
+              '#34c759'    // goed = groen
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // tabel
+      let html = "<table><tr><th>Datum</th><th>Beoordeling</th><th>Afzendernummer</th><th>Voicebot</th><th>Toelichting</th></tr>";
+      data.slice(0, 20).forEach(row => {
+        html += `<tr>
+          <td>${new Date(row.timestamp).toLocaleString()}</td>
+          <td>${row.beoordeling_tekst}</td>
+          <td>${row.beller}</td>
+          <td>${row.voicebot_naam || ""}</td>
+          <td>${row.toelichting || ""}</td>
+        </tr>`;
+      });
+      html += "</table>";
+      document.getElementById('tabel').innerHTML = html;
+    });
+}
+
+// Check API status door /api/beoordelingen te pingen met API-key
+function checkApiStatus() {
+  fetch('/api/beoordelingen', {
+    headers: {
+      'x-api-key': 'secret-kto-voicebot-0031365'  // vervang door je eigen API-key
+    }
+  })
+  .then(response => {
+    const statusText = document.getElementById('api-status-text');
+    if (response.ok) {
+      statusText.textContent = 'Live ✅';
+      statusText.style.color = 'green';
+    } else {
+      statusText.textContent = 'Niet bereikbaar ❌';
+      statusText.style.color = 'red';
+    }
+  })
+  .catch(() => {
+    const statusText = document.getElementById('api-status-text');
+    statusText.textContent = 'Niet bereikbaar ❌';
+    statusText.style.color = 'red';
+  });
+}
+
+// Direct checken bij laden pagina
+checkApiStatus();
+
+// En bijvoorbeeld elke minuut automatisch checken
+setInterval(checkApiStatus, 60000);
+
+laadData();
+// Toon formulier alleen als beheerder
+fetch('/dashboard/is-beheerder')
+  .then(r => r.json())
+  .then(data => {
+    if (data.beheerder) document.getElementById('addUserForm').style.display = 'block';
+  });
+
+// Elke 10 seconden verversen van data (beoordelingen, tabel en grafiek)
+setInterval(() => laadData(), 20000);
+
+</script>
+</body>
+</html>
