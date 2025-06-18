@@ -7,7 +7,15 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background: #fff; }
+    body { background: #f9f9f9; }
+    .container-main {
+      background: #fff;
+      padding: 2em;
+      border-radius: 16px;
+      max-width: 900px;
+      margin: 40px auto;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
     #api-status {
       position: sticky;
       top: 0;
@@ -31,37 +39,40 @@
       z-index: 1050;
     }
     @media (max-width: 600px) {
+      .container-main { padding: 1em; }
       .logo-img { max-width: 120px; }
       th, td { font-size: 0.95em; }
     }
   </style>
 </head>
 <body>
-  <div class="text-center mb-4 mt-3">
-    <a href="https://0031ict.nl" target="_blank" rel="noopener">
-      <img src="/logo0031kleur.png" alt="0031 ICT logo" class="logo-img">
-    </a>
-  </div>
-  <div class="top-btns text-center">
-    <a href="/dashboard-csv" target="_blank" class="btn btn-outline-primary btn-sm">Download als CSV</a>
-    <a href="/logout" class="btn btn-outline-danger btn-sm">Uitloggen</a>
-  </div>
-  <div id="api-status" class="mx-2">
-    Node status: <span id="api-status-text" style="color: gray;">Controleren...</span>
-  </div>
-  <h1 class="mb-4 text-center">Beoordelingen Voicebot</h1>
-  <div id="filter-container" class="mb-3 text-center"></div>
-  <div class="container-fluid px-3">
-    <canvas id="beoordelingenChart"></canvas>
-    <div id="tabel"></div>
-    <div id="addUserForm" style="display:none; margin-top: 2em;">
-      <h3>Nieuwe gebruiker toevoegen</h3>
-      <form method="POST" action="/dashboard/add-user">
-        <input type="text" name="username" placeholder="E-mailadres" required class="form-control mb-2" />
-        <input type="password" name="password" placeholder="Wachtwoord" required class="form-control mb-2" />
-        <input type="text" name="voicebot_naam" placeholder="Bot-naam" required class="form-control mb-2" />
-        <button type="submit" class="btn btn-success">Toevoegen</button>
-      </form>
+  <div class="container-main">
+    <div class="text-center mb-4 mt-3">
+      <a href="https://0031ict.nl" target="_blank" rel="noopener">
+        <img src="/logo0031kleur.png" alt="0031 ICT logo" class="logo-img">
+      </a>
+    </div>
+    <div class="top-btns text-center">
+      <a href="/dashboard-csv" target="_blank" class="btn btn-outline-primary btn-sm">Download als CSV</a>
+      <a href="/logout" class="btn btn-outline-danger btn-sm">Uitloggen</a>
+    </div>
+    <div id="api-status" class="mx-2">
+      Node status: <span id="api-status-text" style="color: gray;">Controleren...</span>
+    </div>
+    <h1 class="mb-4 text-center">Beoordelingen Voicebot</h1>
+    <div id="filter-container" class="mb-3 text-center"></div>
+    <div class="container-fluid px-3">
+      <canvas id="beoordelingenChart"></canvas>
+      <div id="tabel"></div>
+      <div id="addUserForm" style="display:none; margin-top: 2em;">
+        <h3>Nieuwe gebruiker toevoegen</h3>
+        <form method="POST" action="/dashboard/add-user">
+          <input type="text" name="username" placeholder="E-mailadres" required class="form-control mb-2" />
+          <input type="password" name="password" placeholder="Wachtwoord" required class="form-control mb-2" />
+          <input type="text" name="voicebot_naam" placeholder="Bot-naam" required class="form-control mb-2" />
+          <button type="submit" class="btn btn-success">Toevoegen</button>
+        </form>
+      </div>
     </div>
   </div>
   <a href="privacyverklaring.html" target="_blank" rel="noopener"
