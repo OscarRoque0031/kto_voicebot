@@ -293,6 +293,8 @@ app.post('/dashboard/add-user', async (req, res) => {
   }
 });
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- SERVER START ---
 const PORT = process.env.PORT || 3000;
