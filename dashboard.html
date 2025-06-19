@@ -124,6 +124,20 @@
           // Haal voorkeur uit localStorage, standaard 'bar'
           const savedType = localStorage.getItem('diagramType') || 'bar';
           renderChart(savedType);
+
+          // TABEL WEER TONEN
+          let html = "<table class='table table-striped'><tr><th>Datum</th><th>Beoordeling</th><th>Afzendernummer</th><th>Voicebot</th><th>Toelichting</th></tr>";
+          data.slice(0, 20).forEach(row => {
+            html += `<tr>
+              <td>${new Date(row.timestamp).toLocaleString()}</td>
+              <td>${row.beoordeling_tekst}</td>
+              <td>${row.beller}</td>
+              <td>${row.voicebot_naam || ""}</td>
+              <td>${row.toelichting || ""}</td>
+            </tr>`;
+          });
+          html += "</table>";
+          document.getElementById('tabel').innerHTML = html;
         });
     }
 
