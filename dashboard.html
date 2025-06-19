@@ -62,8 +62,10 @@
     <h1 class="mb-4 text-center">Beoordelingen Voicebot</h1>
     <div id="filter-container" class="mb-3 text-center"></div>
     <div class="container-fluid px-3">
-      <canvas id="beoordelingenChart" style="cursor:pointer;"></canvas>
-      <canvas id="beoordelingenPie" style="display:none;cursor:pointer;"></canvas>
+      <div class="position-relative" style="min-height:350px;">
+        <canvas id="beoordelingenChart" style="cursor:pointer; position:absolute; left:0; top:0; right:0; bottom:0; margin:auto;"></canvas>
+        <canvas id="beoordelingenPie" style="display:none;cursor:pointer; position:absolute; left:0; top:0; right:0; bottom:0; margin:auto;"></canvas>
+      </div>
       <div id="tabel"></div>
       <div id="addUserForm" style="display:none; margin-top: 2em;">
         <h3>Nieuwe gebruiker toevoegen</h3>
