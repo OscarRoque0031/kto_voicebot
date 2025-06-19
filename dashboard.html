@@ -149,7 +149,6 @@
       const ctx = (type === 'bar') ? barCanvas.getContext('2d') : pieCanvas.getContext('2d');
       if (myChart) myChart.destroy();
 
-      // Tooltip voor pie: aantallen en percentages
       const total = chartCounts.reduce((a, b) => a + b, 0);
 
       myChart = new Chart(ctx, {
@@ -168,20 +167,29 @@
         },
         options: {
           responsive: true,
-          plugins: (type === 'pie') ? {
+          plugins: {
             tooltip: {
               callbacks: {
                 label: function(context) {
                   const label = context.label || '';
-                  const value = context.parsed || 0;
+                  const value = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
                   const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
                   return `${label}: ${value} (${percentage}%)`;
                 }
               }
-            }
-          } : {},
+            },
+            datalabels: type === 'bar' ? {
+              anchor: 'end',
+              align: 'top',
+              formatter: function(value) {
+                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                return `${value} (${percentage}%)`;
+              }
+            } : undefined
+          },
           scales: (type === 'bar') ? { y: { beginAtZero: true } } : {}
-        }
+        },
+        plugins: type === 'bar' ? [ChartDataLabels] : []
       });
     }
 
