@@ -237,8 +237,8 @@
         if (data.beheerder) document.getElementById('addUserForm').style.display = 'block';
       });
 
-    // Elke 20 seconden verversen van data (beoordelingen, tabel en grafiek)
-    setInterval(() => laadData(), 20000);
+    // Elke 60 seconden verversen van data (beoordelingen, tabel en grafiek)
+    setInterval(() => laadData(), 60000);
 
     // Verberg de privacyverklaring-button als we op de privacyverklaring-pagina zijn
     if (window.location.pathname.endsWith('privacyverklaring.html')) {
