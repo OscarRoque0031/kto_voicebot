@@ -62,7 +62,8 @@
     <h1 class="mb-4 text-center">Beoordelingen Voicebot</h1>
     <div id="filter-container" class="mb-3 text-center"></div>
     <div class="container-fluid px-3">
-      <canvas id="beoordelingenChart"></canvas>
+      <canvas id="beoordelingenChart" style="cursor:pointer;"></canvas>
+      <canvas id="beoordelingenPie" style="display:none;cursor:pointer;"></canvas>
       <div id="tabel"></div>
       <div id="addUserForm" style="display:none; margin-top: 2em;">
         <h3>Nieuwe gebruiker toevoegen</h3>
@@ -82,6 +83,12 @@
   </a>
   <script>
     let isBeheerder = false;
+    let chartType = 'bar';
+    let chartData = null;
+    let chartLabels = ["slecht", "voldoende", "goed"];
+    let chartCounts = [0, 0, 0];
+    let myChart = null;
+
     fetch('/voicebot-namen')
       .then(r => {
         if (r.status === 403) return null; // geen beheerder
@@ -105,35 +112,14 @@
       fetch(url)
         .then(r => r.json())
         .then(data => {
-          // chart
-          const labels = ["slecht", "voldoende", "goed"];
-          const counts = [0, 0, 0];
+          chartCounts = [0, 0, 0];
           data.forEach(item => {
-            if (item.beoordeling_tekst === "slecht") counts[0]++;
-            if (item.beoordeling_tekst === "voldoende") counts[1]++;
-            if (item.beoordeling_tekst === "goed") counts[2]++;
+            if (item.beoordeling_tekst === "slecht") chartCounts[0]++;
+            if (item.beoordeling_tekst === "voldoende") chartCounts[1]++;
+            if (item.beoordeling_tekst === "goed") chartCounts[2]++;
           });
-
-          if (window.myChart) window.myChart.destroy();
-          window.myChart = new Chart(document.getElementById('beoordelingenChart'), {
-            type: 'bar',
-            data: {
-              labels,
-              datasets: [{
-                label: 'Aantal beoordelingen',
-                data: counts,
-                backgroundColor: [
-                  '#ff3b30',   // slecht = rood
-                  '#ff9500',   // voldoende = oranje
-                  '#34c759'    // goed = groen
-                ]
-              }]
-            },
-            options: {
-              responsive: true,
-              scales: { y: { beginAtZero: true } }
-            }
-          });
+          chartData = data;
+          renderChart('bar');
 
           // tabel
           let html = "<table class='table table-striped'><tr><th>Datum</th><th>Beoordeling</th><th>Afzendernummer</th><th>Voicebot</th><th>Toelichting</th></tr>";
@@ -150,6 +136,43 @@
           document.getElementById('tabel').innerHTML = html;
         });
     }
+
+    function renderChart(type) {
+      chartType = type;
+      const barCanvas = document.getElementById('beoordelingenChart');
+      const pieCanvas = document.getElementById('beoordelingenPie');
+      barCanvas.style.display = (type === 'bar') ? '' : 'none';
+      pieCanvas.style.display = (type === 'pie') ? '' : 'none';
+
+      const ctx = (type === 'bar') ? barCanvas.getContext('2d') : pieCanvas.getContext('2d');
+      if (myChart) myChart.destroy();
+      myChart = new Chart(ctx, {
+        type: type,
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: (type === 'bar') ? 'Aantal beoordelingen' : 'Verdeling beoordelingen',
+            data: chartCounts,
+            backgroundColor: [
+              '#ff3b30',   // slecht = rood
+              '#ff9500',   // voldoende = oranje
+              '#34c759'    // goed = groen
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: (type === 'bar') ? { y: { beginAtZero: true } } : {}
+        }
+      });
+    }
+
+    // Toggle chart type on click
+    document.addEventListener('DOMContentLoaded', () => {
+      laadData();
+      document.getElementById('beoordelingenChart').onclick = () => renderChart('pie');
+      document.getElementById('beoordelingenPie').onclick = () => renderChart('bar');
+    });
 
     // Check API status door /api/beoordelingen te pingen met API-key
     function checkApiStatus() {
@@ -181,7 +204,6 @@
     // En bijvoorbeeld elke minuut automatisch checken
     setInterval(checkApiStatus, 60000);
 
-    laadData();
     // Toon formulier alleen als beheerder
     fetch('/dashboard/is-beheerder')
       .then(r => r.json())
