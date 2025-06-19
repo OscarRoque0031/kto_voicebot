@@ -121,26 +121,17 @@
             if (item.beoordeling_tekst === "goed") chartCounts[2]++;
           });
           chartData = data;
-          renderChart('bar');
-
-          // tabel
-          let html = "<table class='table table-striped'><tr><th>Datum</th><th>Beoordeling</th><th>Afzendernummer</th><th>Voicebot</th><th>Toelichting</th></tr>";
-          data.slice(0, 20).forEach(row => {
-            html += `<tr>
-              <td>${new Date(row.timestamp).toLocaleString()}</td>
-              <td>${row.beoordeling_tekst}</td>
-              <td>${row.beller}</td>
-              <td>${row.voicebot_naam || ""}</td>
-              <td>${row.toelichting || ""}</td>
-            </tr>`;
-          });
-          html += "</table>";
-          document.getElementById('tabel').innerHTML = html;
+          // Haal voorkeur uit localStorage, standaard 'bar'
+          const savedType = localStorage.getItem('diagramType') || 'bar';
+          renderChart(savedType);
         });
     }
 
     function renderChart(type) {
       chartType = type;
+      // Sla voorkeur op in localStorage
+      localStorage.setItem('diagramType', type);
+
       const barCanvas = document.getElementById('beoordelingenChart');
       const pieCanvas = document.getElementById('beoordelingenPie');
       barCanvas.style.display = (type === 'bar') ? '' : 'none';
@@ -187,6 +178,8 @@
 
     // Toggle chart type on click
     document.addEventListener('DOMContentLoaded', () => {
+      // Haal voorkeur uit localStorage, standaard 'bar'
+      const savedType = localStorage.getItem('diagramType') || 'bar';
       laadData();
       document.getElementById('beoordelingenChart').onclick = () => renderChart('pie');
       document.getElementById('beoordelingenPie').onclick = () => renderChart('bar');
