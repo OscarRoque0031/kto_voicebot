@@ -296,6 +296,11 @@ app.post('/dashboard/add-user', async (req, res) => {
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve grafana.html from root if requested
+app.get('/grafana.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'grafana.html'));
+});
+
 // --- SERVER START ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API draait op poort ${PORT}`));
