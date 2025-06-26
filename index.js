@@ -76,15 +76,17 @@ app.post('/dashboard/login', async (req, res) => {
   const { username, password } = req.body;
   try {
     const [rows] = await pool.query("SELECT * FROM gebruikers WHERE username = ?", [username]);
+    console.log('Gebruiker gevonden:', rows);
     if (rows.length === 0) return res.send('Login mislukt');
     const user = rows[0];
+    console.log('Wachtwoord ingevoerd:', password, 'Hash in db:', user.password_hash);
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.send('Login mislukt');
 
     req.session.ingelogd = true;
     req.session.username = user.username;
     req.session.voicebot_naam = user.voicebot_naam;
-    req.session.isBeheerder = (user.username === 'support0031'); // Pas aan naar juiste admin username
+    req.session.isBeheerder = (user.username === 'support0031');
 
     res.redirect('/dashboard');
   } catch (err) {
