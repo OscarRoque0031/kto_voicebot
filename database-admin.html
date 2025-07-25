@@ -116,21 +116,30 @@
             
             const formData = new FormData(this);
             const action = formData.get('action');
-            const confirm = formData.get('confirm');
+            const confirmValue = formData.get('confirm');
             
-            if (confirm !== 'JA_WISSEN') {
+            if (confirmValue !== 'JA_WISSEN') {
                 alert('Bevestiging incorrect. Typ exact "JA_WISSEN"');
                 return;
             }
 
-            if (!confirm(`Weet je zeker dat je deze actie wilt uitvoeren: ${action}?`)) {
+            if (!window.confirm(`Weet je zeker dat je deze actie wilt uitvoeren: ${action}?`)) {
                 return;
             }
 
             try {
+                const data = {
+                    action: formData.get('action'),
+                    voicebot_naam: formData.get('voicebot_naam'),
+                    confirm: confirmValue
+                };
+
                 const response = await fetch('/dashboard/clear-data', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
                 });
 
                 const result = await response.text();

@@ -305,6 +305,9 @@ app.post('/dashboard/add-user', async (req, res) => {
 app.post('/dashboard/clear-data', async (req, res) => {
   if (!req.session.isBeheerder) return res.status(403).send('Geen toegang - alleen beheerders');
   
+  console.log('DEBUG: req.body =', req.body);
+  console.log('DEBUG: req.headers =', req.headers);
+  
   const { action, voicebot_naam, confirm } = req.body;
   
   // Veiligheidscheck
@@ -357,5 +360,5 @@ app.get('/grafana.html', (req, res) => {
 });
 
 // --- SERVER START ---
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API draait op poort ${PORT}`));
