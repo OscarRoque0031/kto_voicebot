@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Beheer - KTO Voicebot</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .warning { background: #ffebee; border: 1px solid #f44336; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .success { background: #e8f5e8; border: 1px solid #4caf50; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input, button { padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #2196f3; color: white; cursor: pointer; padding: 10px 20px; }
+        button:hover { background: #1976d2; }
+        .danger { background: #f44336; }
+        .danger:hover { background: #d32f2f; }
+        .stats { background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Database Beheer</h1>
+        <p><a href="/dashboard">← Terug naar Dashboard</a></p>
+        
+        <div class="warning">
+            <strong>⚠️ WAARSCHUWING:</strong> Deze acties zijn onomkeerbaar! 
+            Maak eerst een backup van je database voordat je data wist.
+        </div>
+
+        <div class="stats" id="stats">
+            <h3>📊 Database Statistieken</h3>
+            <p>Laden...</p>
+        </div>
+
+        <h3>🧹 Database Acties</h3>
+        
+        <form id="clearForm">
+            <div class="form-group">
+                <label for="action">Selecteer Actie:</label>
+                <select id="action" name="action" required>
+                    <option value="">-- Kies een actie --</option>
+                    <option value="clear_all">Alle beoordelingen wissen</option>
+                    <option value="clear_voicebot">Specifieke voicebot wissen</option>
+                    <option value="reset_ids">ID teller resetten</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="voicebotGroup" style="display:none;">
+                <label for="voicebot_naam">Voicebot Naam:</label>
+                <select id="voicebot_naam" name="voicebot_naam">
+                    <option value="">Laden...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm">Bevestiging (typ "JA_WISSEN"):</label>
+                <input type="text" id="confirm" name="confirm" placeholder="JA_WISSEN" required>
+            </div>
+
+            <button type="submit" class="danger">🗑️ Uitvoeren</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Laad statistieken
+        async function loadStats() {
+            try {
+                const response = await fetch('/dashboard-data');
+                const data = await response.json();
+                
+                const stats = {
+                    total: data.length,
+                    voicebots: [...new Set(data.map(d => d.voicebot_naam))],
+                    ratings: {
+                        good: data.filter(d => d.beoordeling === 1).length,
+                        okay: data.filter(d => d.beoordeling === 2).length,
+                        bad: data.filter(d => d.beoordeling === 3).length
+                    }
+                };
+
+                document.getElementById('stats').innerHTML = `
+                    <h3>📊 Database Statistieken</h3>
+                    <p><strong>Totaal beoordelingen:</strong> ${stats.total}</p>
+                    <p><strong>Actieve voicebots:</strong> ${stats.voicebots.length} (${stats.voicebots.join(', ')})</p>
+                    <p><strong>Verdeling:</strong> ${stats.ratings.good} goed, ${stats.ratings.okay} voldoende, ${stats.ratings.bad} slecht</p>
+                `;
+
+                // Voeg voicebots toe aan dropdown
+                const select = document.getElementById('voicebot_naam');
+                select.innerHTML = '<option value="">-- Kies voicebot --</option>';
+                stats.voicebots.forEach(bot => {
+                    select.innerHTML += `<option value="${bot}">${bot}</option>`;
+                });
+
+            } catch (error) {
+                document.getElementById('stats').innerHTML = `
+                    <h3>📊 Database Statistieken</h3>
+                    <p style="color: red;">Fout bij laden: ${error.message}</p>
+                `;
+            }
+        }
+
+        // Show/hide voicebot selector
+        document.getElementById('action').addEventListener('change', function() {
+            const voicebotGroup = document.getElementById('voicebotGroup');
+            voicebotGroup.style.display = this.value === 'clear_voicebot' ? 'block' : 'none';
+        });
+
+        // Handle form submission
+        document.getElementById('clearForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const action = formData.get('action');
+            const confirm = formData.get('confirm');
+            
+            if (confirm !== 'JA_WISSEN') {
+                alert('Bevestiging incorrect. Typ exact "JA_WISSEN"');
+                return;
+            }
+
+            if (!confirm(`Weet je zeker dat je deze actie wilt uitvoeren: ${action}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/dashboard/clear-data', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="${response.ok ? 'success' : 'warning'}">
+                        ${result}
+                    </div>
+                `;
+
+                if (response.ok) {
+                    loadStats(); // Herlaad statistieken
+                    this.reset(); // Reset form
+                }
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="warning">Fout: ${error.message}</div>
+                `;
+            }
+        });
+
+        // Laad initiële data
+        loadStats();
+    </script>
+</body>
+</html>

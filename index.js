@@ -109,6 +109,12 @@ app.get('/dashboard', dashboardAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
+// --- DATABASE ADMIN (alleen beheerders) ---
+app.get('/dashboard/admin', dashboardAuth, (req, res) => {
+  if (!req.session.isBeheerder) return res.status(403).send('Geen toegang - alleen beheerders');
+  res.sendFile(path.join(__dirname, 'database-admin.html'));
+});
+
 // --- DASHBOARD API: data ophalen met sessie-check ---
 app.get('/dashboard-data', dashboardAuth, async (req, res) => {
   try {
@@ -292,6 +298,53 @@ app.post('/dashboard/add-user', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Fout bij toevoegen');
+  }
+});
+
+// --- DATABASE BEHEER: Clear beoordelingen (alleen beheerder) ---
+app.post('/dashboard/clear-data', async (req, res) => {
+  if (!req.session.isBeheerder) return res.status(403).send('Geen toegang - alleen beheerders');
+  
+  const { action, voicebot_naam, confirm } = req.body;
+  
+  // Veiligheidscheck
+  if (confirm !== 'JA_WISSEN') {
+    return res.send('Bevestiging vereist: typ "JA_WISSEN" om te bevestigen');
+  }
+  
+  try {
+    let sql, params = [];
+    let message = '';
+    
+    switch (action) {
+      case 'clear_all':
+        sql = "DELETE FROM beoordelingen";
+        message = 'Alle beoordelingen gewist';
+        break;
+        
+      case 'clear_voicebot':
+        if (!voicebot_naam) return res.send('Voicebot naam vereist');
+        sql = "DELETE FROM beoordelingen WHERE voicebot_naam = ?";
+        params = [voicebot_naam];
+        message = `Beoordelingen voor ${voicebot_naam} gewist`;
+        break;
+        
+      case 'reset_ids':
+        sql = "ALTER TABLE beoordelingen AUTO_INCREMENT = 1";
+        message = 'ID teller gereset';
+        break;
+        
+      default:
+        return res.send('Ongeldige actie');
+    }
+    
+    const [result] = await pool.execute(sql, params);
+    console.log(`Database actie uitgevoerd door ${req.session.username}: ${action}`);
+    res.send(`${message}. Aantal verwijderd: ${result.affectedRows || 0}`);
+    
+  } catch (err) {
+    console.error('Database clear error:', err);
+    res.status(500).send('Fout bij wissen van data');
   }
 });
 

@@ -55,6 +55,8 @@
     <div class="top-btns text-center">
       <a href="/dashboard-csv" target="_blank" class="btn btn-outline-primary btn-sm">Download als CSV</a>
       <a href="/logout" class="btn btn-outline-danger btn-sm">Uitloggen</a>
+      <!-- Database beheer link - alleen voor beheerders -->
+      <a href="/dashboard/admin" class="btn btn-outline-warning btn-sm" id="adminBtn" style="display:none;">🗑️ Database Beheer</a>
     </div>
     <div id="api-status" class="mx-2">
       Node status: <span id="api-status-text" style="color: gray;">Controleren...</span>
@@ -239,6 +241,16 @@
 
     // Elke 60 seconden verversen van data (beoordelingen, tabel en grafiek)
     setInterval(() => laadData(), 60000);
+
+    // Check of gebruiker beheerder is en toon admin button
+    fetch('/dashboard/is-beheerder')
+      .then(r => r.json())
+      .then(data => {
+        if (data.beheerder) {
+          document.getElementById('adminBtn').style.display = 'inline-block';
+        }
+      })
+      .catch(() => {});
 
     // Verberg de privacyverklaring-button als we op de privacyverklaring-pagina zijn
     if (window.location.pathname.endsWith('privacyverklaring.html')) {
