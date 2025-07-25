@@ -27,6 +27,13 @@ De **KTO Voicebot** is een geavanceerd klantentevredenheidsmonitoringsysteem dat
 - **REST API** endpoints voor integratie met externe systemen
 - **Real-time data updates** zonder pagina refresh
 
+### 5. **Database Beheer (Beheerders)**
+- **Veilige database clearing** functionaliteit voor beheerders
+- **Selectief wissen** - alle data of specifieke voicebot data
+- **ID teller reset** functionaliteit
+- **Bevestigingssysteem** met "JA_WISSEN" verificatie
+- **Real-time statistieken** in database admin interface
+
 ## 🏢 Ondersteunde Voicebots
 
 Het systeem ondersteunt momenteel de volgende voicebots:
@@ -69,9 +76,13 @@ Elke beoordeling kan worden aangevuld met een tekstuele toelichting voor meer co
 
 #### Beveiligde Dashboard Endpoints
 - `GET /dashboard` - Hoofddashboard (login vereist)
+- `GET /dashboard/admin` - Database beheer interface (beheerder only)
 - `GET /dashboard-data` - Dashboard data (JSON)
 - `GET /dashboard-csv` - Data export (CSV)
 - `GET /voicebot-namen` - Lijst van voicebots (beheerder)
+- `POST /dashboard/clear-data` - Database clearing (beheerder only)
+- `POST /dashboard/add-user` - Nieuwe gebruiker toevoegen (beheerder)
+- `GET /dashboard/is-beheerder` - Beheerder status check
 
 #### API met API-key beveiliging
 - `GET /api/beoordelingen` - Alle beoordelingen (API-key vereist)
@@ -83,6 +94,13 @@ Elke beoordeling kan worden aangevuld met een tekstuele toelichting voor meer co
 - **API-key beveiliging** voor externe API toegang
 - **Rol-gebaseerde toegang** (gebruiker vs beheerder)
 - **Bcrypt password hashing** voor veilige opslag
+- **Beheerder verificatie** voor kritieke functies (support0031)
+
+### **Database Beveiliging**
+- **Bevestigingssysteem** voor destructieve operaties
+- **"JA_WISSEN" verificatie** voor data clearing
+- **Audit logging** van alle database wijzigingen
+- **Toegangscontrole** op beheerder niveau
 
 ### **Data Bescherming**
 - **Environment variabelen** voor gevoelige configuratie
@@ -92,7 +110,7 @@ Elke beoordeling kan worden aangevuld met een tekstuele toelichting voor meer co
 ## 🌐 Deployment & Configuratie
 
 ### **Poorten**
-- **Poort 4000**: Node.js/Express API & Dashboard
+- **Poort 3000**: Node.js/Express API & Dashboard (productie)
 - **Poort 3001**: Grafana Dashboard (indien geïnstalleerd)
 
 ### **Environment Variabelen**
@@ -150,8 +168,10 @@ CREATE TABLE beoordelingen (
 ### **Voor Beheerders**
 1. **Volledige toegang** tot alle voicebot-data
 2. **Gebruikersbeheer** - nieuwe gebruikers toevoegen
-3. **Cross-voicebot analyse** en vergelijkingen
-4. **Systeem monitoring** en onderhoud
+3. **Database beheer** - veilig wissen van data met bevestiging
+4. **Cross-voicebot analyse** en vergelijkingen
+5. **Systeem monitoring** en onderhoud
+6. **Real-time statistieken** en data management
 
 ### **Voor Developers**
 1. **Webhook integratie** voor automatische data-invoer
@@ -171,5 +191,23 @@ Voor technische ondersteuning of vragen over de KTO Voicebot service:
 Dit project is ontwikkeld door 0031 ICT Services voor interne gebruik en klantendienstverlening.
 
 ---
+
+## 🎉 Recente Updates (Juli 2025)
+
+### ✅ **Database Beheer Interface**
+- Nieuwe beheerder-only interface voor database management
+- Veilige data clearing met bevestigingssysteem
+- Real-time statistieken en voicebot overzicht
+- Selectief wissen per voicebot of alle data
+
+### ✅ **Verbeterde Beveiliging**
+- Versterkte toegangscontrole voor kritieke functies
+- Audit logging voor alle database wijzigingen
+- Bevestigingssysteem voor destructieve operaties
+
+### ✅ **Bug Fixes**
+- Parameter naming consistency tussen frontend en backend
+- FormData vs JSON content-type handling
+- Verbeterde error handling en debugging
 
 *Laatste update: Juli 2025*
